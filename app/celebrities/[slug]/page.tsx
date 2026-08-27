@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getCelebrity } from "@/lib/celebrities";
 import { saveCard } from "@/lib/cards-storage";
+import { getCheckoutUrl, isPaidCheckoutEnabled, PAID_CARD } from "@/lib/pricing";
 import MembershipCard from "@/components/MembershipCard";
 
 export default function CelebrityProfilePage() {
@@ -12,6 +13,7 @@ export default function CelebrityProfilePage() {
   const router = useRouter();
   const slug = String(params.slug || "");
   const celebrity = useMemo(() => getCelebrity(slug), [slug]);
+  const paidEnabled = isPaidCheckoutEnabled();
 
   const [fanName, setFanName] = useState("");
   const [fanEmail, setFanEmail] = useState("");
@@ -29,8 +31,7 @@ export default function CelebrityProfilePage() {
     );
   }
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function issueFreeCard() {
     setError("");
     if (!fanName.trim() || !fanEmail.trim()) {
       setError("Please enter your name and email.");
@@ -79,6 +80,43 @@ export default function CelebrityProfilePage() {
     }
   }
 
+  function goToPaidCheckout() {
+    setError("");
+    if (!fanName.trim() || !fanEmail.trim()) {
+      setError("Enter your name and email before paying.");
+      return;
+    }
+
+    // Remember intent so success return can still feel connected
+    try {
+      sessionStorage.setItem(
+        "fp_pending",
+        JSON.stringify({
+          fanName: fanName.trim(),
+          fanEmail: fanEmail.trim(),
+          slug: celebrity!.slug,
+          celebrityName: celebrity!.name,
+          category: celebrity!.category,
+        })
+      );
+    } catch {
+      /* ignore */
+    }
+
+    const url = getCheckoutUrl({
+      slug: celebrity!.slug,
+      fanName: fanName.trim(),
+      fanEmail: fanEmail.trim(),
+    });
+
+    if (!url) {
+      setError("Paid checkout is not configured yet.");
+      return;
+    }
+
+    window.location.href = url;
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-6 py-16">
       <Link href="/celebrities" className="text-sm text-gold hover:underline">
@@ -114,10 +152,11 @@ export default function CelebrityProfilePage() {
               Get your fan card
             </h2>
             <p className="mt-2 text-sm text-muted">
-              Free digital FamePass membership card for {celebrity.name}.
+              Digital FamePass membership card for {celebrity.name}. US fans can
+              pay in USD.
             </p>
 
-            <form onSubmit={onSubmit} className="mt-8 space-y-4">
+            <div className="mt-8 space-y-4">
               <div>
                 <label className="text-xs uppercase tracking-wider text-muted">
                   Your name
@@ -144,14 +183,47 @@ export default function CelebrityProfilePage() {
 
               {error && <p className="text-sm text-red-400">{error}</p>}
 
+              {paidEnabled && (
+                <button
+                  type="button"
+                  onClick={goToPaidCheckout}
+                  className="w-full rounded-full gold-gradient py-3.5 text-sm font-semibold uppercase tracking-wider text-ink"
+                >
+                  Pay ${PAID_CARD.priceUsd} USD — {PAID_CARD.label}
+                </button>
+              )}
+
               <button
-                type="submit"
+                type="button"
                 disabled={loading}
-                className="w-full rounded-full gold-gradient py-3.5 text-sm font-semibold uppercase tracking-wider text-ink disabled:opacity-60"
+                onClick={issueFreeCard}
+                className={`w-full rounded-full py-3.5 text-sm font-semibold uppercase tracking-wider transition disabled:opacity-60 ${
+                  paidEnabled
+                    ? "border border-white/15 text-cream hover:border-gold/40"
+                    : "gold-gradient text-ink"
+                }`}
               >
-                {loading ? "Creating card…" : "Request membership card"}
+                {loading
+                  ? "Creating card…"
+                  : paidEnabled
+                    ? "Get free basic card"
+                    : "Request membership card"}
               </button>
-            </form>
+
+              {paidEnabled && (
+                <p className="text-center text-[11px] text-muted">
+                  Secure USD checkout (Lemon Squeezy / Gumroad). Card issues after
+                  payment confirmation.
+                </p>
+              )}
+
+              {!paidEnabled && (
+                <p className="text-center text-[11px] text-muted">
+                  Paid USD checkout activates when you add NEXT_PUBLIC_CHECKOUT_URL
+                  (Lemon Squeezy or Gumroad product link).
+                </p>
+              )}
+            </div>
 
             <div className="mt-10 opacity-80">
               <p className="mb-3 text-center text-[10px] uppercase tracking-wider text-muted">

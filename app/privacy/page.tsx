@@ -10,8 +10,9 @@ export default function PrivacyPage() {
           issue the card and (optionally) store the request in our database.
         </p>
         <p>
-          Cards saved in "My Cards" are stored in your browser (localStorage) on
-          this device unless you connect an account in a future version.
+          Cards saved in the My Cards section are stored in your browser
+          (localStorage) on this device unless you connect an account in a future
+          version.
         </p>
         <p>
           We do not sell your personal information. Payment processors (if added)

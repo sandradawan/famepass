@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { getCelebrity, generateCardCode } from "@/lib/celebrities";
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { getCelebrity } from "@/lib/celebrities";
+import { saveCard } from "@/lib/cards-storage";
 import MembershipCard from "@/components/MembershipCard";
 
 export default function CelebrityProfilePage() {
@@ -38,31 +38,43 @@ export default function CelebrityProfilePage() {
     }
 
     setLoading(true);
-    const code = generateCardCode(celebrity!.slug);
 
     try {
-      if (isSupabaseConfigured()) {
-        const supabase = createClient();
-        if (supabase) {
-          await supabase.from("card_requests").insert({
-            celebrity_id: celebrity!.id,
-            fan_name: fanName.trim(),
-            fan_email: fanEmail.trim().toLowerCase(),
-            card_code: code,
-            status: "issued",
-          });
-        }
+      const res = await fetch("/api/card-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fanName: fanName.trim(),
+          fanEmail: fanEmail.trim(),
+          slug: celebrity!.slug,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || "Request failed");
       }
 
+      const card = data.card;
+      saveCard({
+        fanName: card.fanName,
+        fanEmail: card.fanEmail,
+        celebrityName: card.celebrityName,
+        celebritySlug: card.celebritySlug,
+        category: card.category,
+        cardCode: card.cardCode,
+        createdAt: new Date().toISOString(),
+      });
+
       const qs = new URLSearchParams({
-        name: fanName.trim(),
-        celeb: celebrity!.name,
-        code,
-        category: celebrity!.category,
+        name: card.fanName,
+        celeb: card.celebrityName,
+        code: card.cardCode,
+        category: card.category,
       });
       router.push(`/card/success?${qs.toString()}`);
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
       setLoading(false);
     }
   }
@@ -130,9 +142,7 @@ export default function CelebrityProfilePage() {
                 />
               </div>
 
-              {error && (
-                <p className="text-sm text-red-400">{error}</p>
-              )}
+              {error && <p className="text-sm text-red-400">{error}</p>}
 
               <button
                 type="submit"

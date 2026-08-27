@@ -18,11 +18,11 @@ export default function Navbar() {
           <Link href="/celebrities" className="hover:text-cream transition">
             Celebrities
           </Link>
+          <Link href="/my-cards" className="hover:text-cream transition">
+            My Cards
+          </Link>
           <Link href="/#how" className="hover:text-cream transition">
             How it works
-          </Link>
-          <Link href="/#faq" className="hover:text-cream transition">
-            FAQ
           </Link>
           <Link
             href="/celebrities"
@@ -54,11 +54,11 @@ export default function Navbar() {
             <Link href="/celebrities" onClick={() => setOpen(false)}>
               Celebrities
             </Link>
+            <Link href="/my-cards" onClick={() => setOpen(false)}>
+              My Cards
+            </Link>
             <Link href="/#how" onClick={() => setOpen(false)}>
               How it works
-            </Link>
-            <Link href="/#faq" onClick={() => setOpen(false)}>
-              FAQ
             </Link>
             <Link
               href="/celebrities"

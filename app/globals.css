@@ -20,7 +20,8 @@ body {
   background: var(--color-ink);
   color: var(--color-cream);
   font-family: var(--font-sans);
-  antialiased;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 ::selection {

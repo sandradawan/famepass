@@ -23,11 +23,11 @@ export default function Footer() {
               <Link href="/celebrities" className="hover:text-cream">
                 All celebrities
               </Link>
+              <Link href="/my-cards" className="hover:text-cream">
+                My Cards
+              </Link>
               <Link href="/#how" className="hover:text-cream">
                 How it works
-              </Link>
-              <Link href="/#faq" className="hover:text-cream">
-                FAQ
               </Link>
             </div>
           </div>
@@ -35,10 +35,17 @@ export default function Footer() {
             <p className="text-xs font-semibold uppercase tracking-wider text-gold">
               Legal
             </p>
+            <div className="mt-4 flex flex-col gap-2 text-sm text-muted">
+              <Link href="/terms" className="hover:text-cream">
+                Terms
+              </Link>
+              <Link href="/privacy" className="hover:text-cream">
+                Privacy
+              </Link>
+            </div>
             <p className="mt-4 text-sm leading-relaxed text-muted">
-              FamePass cards are fan memorabilia. They are not official
-              endorsements or affiliations with any celebrity unless explicitly
-              marked Official or Verified.
+              Fan memorabilia only. Not an official endorsement unless marked
+              Official or Verified.
             </p>
           </div>
         </div>
